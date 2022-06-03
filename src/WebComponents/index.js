@@ -1,12 +1,13 @@
-const template = document.createElement("template");
 
+
+const template = document.createElement("template");
 template.innerHTML = `
 <style>
+
 .container { 
 position: relative;
 width: 1440px;
-height: 960px;
-background: #FFFFFF;      
+height: 100%;
 }
 
 img.responsive {
@@ -26,6 +27,7 @@ top: 136px;
 }
 
 .title {
+position:aboslute;
 width: 380px;
 height: 50px;
 left: calc(50% - 380px/2 + 300px);
@@ -78,38 +80,86 @@ line-height: 100%;
 color: #FFFFFF;
 }
 
+.modal {
+display: none;
+width:920px;
+height:210px;
+left:50%;
+top:50%;
+margin:-100px 0 0 -450px;
+position:fixed;
+border: 1px solid black;
+background: #FFFFFF;
+}
+
+
+
+
   </style>
+  
   <div class="container">
-  <img class="responsive"/>
-  <div class="global">
-  <div class="title">
-  <h1 class="titletext">Lorem Ipsum</h1>
+    <img class="responsive"/>
+      <div class="global">
+        <div class="title">
+          <h1 class="titletext"></h1>
+        </div>
+        <div class="description">
+          <p class="description-text"></p>
+        </div>
+        <br>
+        <button class="button">Button</button>
+      </div>
   </div>
-  <div class="description">
-  <p class="description-text">Lorem Ipsum is simply dummy text of the printing and typesetting industry.
-  Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley
-  </p>
+  
+  <div class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="close">&times;</span>
+      <slot name="header"><h1>Alert!</h1></slot>
+    </div>
+    <div class="modal-body">
+        <slot><slot>
+    </div>
   </div>
-  <br></br>
-  <button class="button">Button</button>
-  </div>
- 
-  </div>`;
+</div>
+</div>`;
 
 class WebComponent extends HTMLElement {
   constructor() {
     super();
+
     const shadowRoot = this.attachShadow({ mode: "open" });
     shadowRoot.appendChild(template.content);
+ 
   }
 
   static get observedAttributes() {
-    return ["avatar"];
+    return ["avatar", "name", "text"];
   }
-
+  connectedCallback() {
+    this._modal = this.shadowRoot.querySelector(".modal");
+    this.shadowRoot.querySelector("button").addEventListener('click',this._showModal.bind(this));
+    this.shadowRoot.querySelector(".close").addEventListener('click',this._hideModal.bind(this));
+  }
+  disconnectedCallback() {
+    this.shadowRoot.querySelector("button").removeEventListener('click', this._showModal);
+    this.shadowRoot.querySelector(".close").removeEventListener('click', this._hideModal);
+  }
+  _showModal() { 
+    this._modalVisible = true;
+    this._modal.style.display = 'block';
+    this.container.style = 'opacity: 0.3';
+   }
+   _hideModal() {
+     this._modalVisible = false;
+     this._modal.style.display = 'none';
+   }
   attributeChangedCallback(name, oldValue, newValue) {
     this.shadowRoot.querySelector("img.responsive").src =
       this.getAttribute("avatar");
+    this.shadowRoot.querySelector("h1").innerText = this.getAttribute("name");
+    this.shadowRoot.querySelector("p").innerText = this.getAttribute("text");
+    
   }
 }
 
